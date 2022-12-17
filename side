@@ -1,0 +1,75 @@
+local Aiming = {
+    Enabled = true,
+    ShowFOV = false,
+    FOV = 119,
+    FOVSides = 300,
+    FOVColour = Color3.fromRGB(255, 255, 255),
+    VisibleCheck = true,
+    HitChance = 110,
+    Selected = nil,
+    SelectedPart = nil,
+    TargetPart = {
+        "Head",
+        "LeftHand",
+        "RightHand",
+        "LeftLowerArm",
+        "RightLowerArm",
+        "LeftUpperArm",
+        "RightUpperArm",
+        "LeftFoot",
+        "LeftLowerLeg",
+        "UpperTorso",
+        "HumanoidRootPart",
+        "LeftUpperLeg",
+        "RightLowerLeg",
+        "RightFoot",
+        "LowerTorso"
+    },
+    Ignored = {
+        Teams = {
+            {
+                Team = LocalPlayer.Team,
+                TeamColor = LocalPlayer.TeamColor
+            }
+        },
+        Players = {LocalPlayer, 91318356}
+    }
+}
+
+local circle = Drawing.new("Circle")
+circle.Transparency = 0.5
+circle.Thickness = 2
+circle.Color = Aiming.FOVColour
+circle.Filled = false
+Aiming.FOVCircle = circle
+
+function Aiming.UpdateFOV()
+    if not circle then
+        return
+    end
+
+    circle.Visible = Aiming.ShowFOV
+    circle.Radius = Aiming.FOV * 3
+    circle.Position = Vector2.new(Mouse.X, Mouse.Y + GuiService:GetGuiInset().Y)
+    circle.NumSides = Aiming.FOVSides
+    circle.Color = Aiming.FOVColour
+
+    return circle
+end
+
+local function CalcChance(percentage)
+    percentage = math.floor(percentage)
+    local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+    return chance <= percentage / 100
+end
+
+function Aiming.IsPartVisible(Part, PartDescendant)
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local Origin = CurrentCamera.CFrame.Position
+    local _, OnScreen = WorldToViewportPoint(CurrentCamera, Part.Position)
+
+    if OnScreen then
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        raycastParams.FilterDescendantsInstances = {PartDescendant}
+        local hit, _, _ = Workspace:Ray
